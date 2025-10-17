@@ -141,15 +141,17 @@ export default function Index() {
 
   const handleComparisonChoice = (chosenSphereId: number) => {
     const currentPair = COMPARISON_PAIRS[currentComparisonIndex];
-    setComparisonChoices({
+    const updatedChoices = {
       ...comparisonChoices,
       [currentPair.id]: chosenSphereId
-    });
+    };
+    setComparisonChoices(updatedChoices);
 
     if (currentComparisonIndex < COMPARISON_PAIRS.length - 1) {
       setCurrentComparisonIndex(currentComparisonIndex + 1);
     } else {
       setCurrentView('results');
+      saveResults();
     }
   };
 
@@ -166,6 +168,7 @@ export default function Index() {
       const difference = Math.abs(value - accessibility);
       return {
         sphere: sphere.name,
+        sphereId: sphere.id,
         value,
         accessibility,
         difference
@@ -175,6 +178,32 @@ export default function Index() {
     const totalDifference = results.reduce((sum, r) => sum + r.difference, 0);
     
     return { results, totalDifference };
+  };
+
+  const saveResults = async () => {
+    const { totalDifference } = calculateResults();
+    const maxPossibleDifference = 66;
+    const satisfactionIndex = Math.max(0, 100 - (totalDifference / maxPossibleDifference) * 100);
+
+    try {
+      const response = await fetch('https://functions.poehali.dev/2f114e68-4d9f-41c1-b82b-62a01fc8f046', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          valueRankings,
+          accessibilityRankings,
+          comparisonChoices,
+          totalDifference,
+          satisfactionIndex
+        })
+      });
+      
+      if (!response.ok) {
+        console.error('Failed to save results');
+      }
+    } catch (error) {
+      console.error('Error saving results:', error);
+    }
   };
 
   if (currentView === 'instructions') {
@@ -263,6 +292,17 @@ export default function Index() {
   if (currentView === 'start') {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-orange-50 flex items-center justify-center p-4">
+        <div className="absolute top-4 right-4">
+          <Button 
+            onClick={() => window.location.href = '/admin'}
+            variant="outline"
+            className="gap-2"
+          >
+            <Icon name="BarChart3" size={16} />
+            Аналитика
+          </Button>
+        </div>
+        
         <Card className="max-w-3xl w-full p-8 md:p-12 text-center animate-scale-in shadow-2xl">
           <div className="mb-8">
             <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-primary to-secondary mb-6 animate-pulse">
@@ -381,19 +421,49 @@ export default function Index() {
           </div>
 
           <div className="bg-gradient-to-r from-purple-100/50 to-pink-100/50 rounded-xl p-6 mb-6">
-            <h3 className="font-semibold text-lg mb-3 flex items-center gap-2">
+            <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
               <Icon name="Lightbulb" size={20} className="text-accent" />
-              Интерпретация результатов
+              Обработка результатов и интерпретация
             </h3>
-            <div className="space-y-2 text-sm text-foreground/80">
-              <p><span className="font-semibold">Индекс {satisfactionIndex >= 70 ? 'высокий' : satisfactionIndex >= 40 ? 'средний' : 'низкий'}:</span> {
-                satisfactionIndex >= 70 ? 'Ваши ценности и возможности хорошо согласованы. Вы реализуете то, что для вас важно.' :
-                satisfactionIndex >= 40 ? 'Есть определенное расхождение между желаемым и доступным. Рекомендуется работа над приоритетами.' :
-                'Значительное расхождение между ценностями и возможностями может вызывать внутренний дискомфорт.'
-              }</p>
-              <p className="text-xs text-foreground/60 mt-4">
-                <span className="font-semibold">Примечание:</span> Расхождение 0-2 балла — норма; 3-5 баллов — зона внимания; 6+ баллов — проблемная зона.
-              </p>
+            <div className="space-y-4 text-sm text-foreground/80">
+              <div className="bg-white/50 rounded-lg p-4">
+                <p className="font-semibold mb-2">Подсчет расхождений:</p>
+                <p className="text-xs leading-relaxed">
+                  Для каждой из 12 ценностей подсчитано, сколько раз она была выбрана по «ценности» (Ц) и сколько раз по «доступности» (Д). 
+                  Затем все ценности и доступности ранжируются отдельно друг от друга. После этого происходит сравнение рангов Ц и Д 
+                  и определяются величины расхождений между каждой Ц и Д.
+                </p>
+              </div>
+
+              <div className="bg-white/50 rounded-lg p-4">
+                <p className="font-semibold mb-2">Интегральный показатель методики:</p>
+                <p className="mb-2">Сумма расхождений по модулю всех 12 понятий: <span className="font-bold text-primary">{totalDifference}</span></p>
+              </div>
+
+              <div className="bg-white/50 rounded-lg p-4">
+                <p className="font-semibold mb-3">Уровень дезинтеграции в мотивационно-личностной сфере:</p>
+                <div className="space-y-2">
+                  <div className={`p-3 rounded-lg ${totalDifference >= 0 && totalDifference <= 33 ? 'bg-green-100 border-2 border-green-500' : 'bg-gray-50'}`}>
+                    <p className="font-semibold">От 0 до НОРМЫ (33 у мужчин, 37 у женщин)</p>
+                    <p className="text-xs mt-1">Низкий уровень дезинтеграции — хорошая согласованность ценностей и возможностей</p>
+                  </div>
+                  <div className={`p-3 rounded-lg ${totalDifference > 33 && totalDifference <= 50 ? 'bg-yellow-100 border-2 border-yellow-500' : 'bg-gray-50'}`}>
+                    <p className="font-semibold">От НОРМЫ до 50</p>
+                    <p className="text-xs mt-1">Средний уровень дезинтеграции — умеренное расхождение</p>
+                  </div>
+                  <div className={`p-3 rounded-lg ${totalDifference > 50 ? 'bg-red-100 border-2 border-red-500' : 'bg-gray-50'}`}>
+                    <p className="font-semibold">От 50 до 72</p>
+                    <p className="text-xs mt-1">Высокий уровень дезинтеграции — значительный внутриличностный конфликт</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-accent/10 rounded-lg p-4 border-l-4 border-accent">
+                <p className="text-sm">
+                  <span className="font-semibold">Вывод:</span> Чем больше сумма расхождений между Ц и Д, тем больше выражен 
+                  <span className="font-semibold text-accent"> внутриличностный конфликт</span>, обусловленный вследствие неудовлетворения жизненных ценностей.
+                </p>
+              </div>
             </div>
           </div>
 
