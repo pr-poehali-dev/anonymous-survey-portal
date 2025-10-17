@@ -28,11 +28,88 @@ const LIFE_SPHERES = [
 
 type RankingType = 'value' | 'accessibility';
 
+type ComparisonPair = {
+  id: number;
+  sphere1: number;
+  sphere2: number;
+};
+
+const COMPARISON_PAIRS: ComparisonPair[] = [
+  { id: 1, sphere1: 1, sphere2: 2 },
+  { id: 2, sphere1: 1, sphere2: 3 },
+  { id: 3, sphere1: 1, sphere2: 4 },
+  { id: 4, sphere1: 1, sphere2: 5 },
+  { id: 5, sphere1: 1, sphere2: 6 },
+  { id: 6, sphere1: 1, sphere2: 7 },
+  { id: 7, sphere1: 1, sphere2: 8 },
+  { id: 8, sphere1: 1, sphere2: 9 },
+  { id: 9, sphere1: 1, sphere2: 10 },
+  { id: 10, sphere1: 1, sphere2: 11 },
+  { id: 11, sphere1: 1, sphere2: 12 },
+  { id: 12, sphere1: 2, sphere2: 3 },
+  { id: 13, sphere1: 2, sphere2: 4 },
+  { id: 14, sphere1: 2, sphere2: 5 },
+  { id: 15, sphere1: 2, sphere2: 6 },
+  { id: 16, sphere1: 2, sphere2: 7 },
+  { id: 17, sphere1: 2, sphere2: 8 },
+  { id: 18, sphere1: 2, sphere2: 9 },
+  { id: 19, sphere1: 2, sphere2: 10 },
+  { id: 20, sphere1: 2, sphere2: 11 },
+  { id: 21, sphere1: 2, sphere2: 12 },
+  { id: 22, sphere1: 3, sphere2: 4 },
+  { id: 23, sphere1: 3, sphere2: 5 },
+  { id: 24, sphere1: 3, sphere2: 6 },
+  { id: 25, sphere1: 3, sphere2: 7 },
+  { id: 26, sphere1: 3, sphere2: 8 },
+  { id: 27, sphere1: 3, sphere2: 9 },
+  { id: 28, sphere1: 3, sphere2: 10 },
+  { id: 29, sphere1: 3, sphere2: 11 },
+  { id: 30, sphere1: 3, sphere2: 12 },
+  { id: 31, sphere1: 4, sphere2: 5 },
+  { id: 32, sphere1: 4, sphere2: 6 },
+  { id: 33, sphere1: 4, sphere2: 7 },
+  { id: 34, sphere1: 4, sphere2: 8 },
+  { id: 35, sphere1: 4, sphere2: 9 },
+  { id: 36, sphere1: 4, sphere2: 10 },
+  { id: 37, sphere1: 4, sphere2: 11 },
+  { id: 38, sphere1: 4, sphere2: 12 },
+  { id: 39, sphere1: 5, sphere2: 6 },
+  { id: 40, sphere1: 5, sphere2: 7 },
+  { id: 41, sphere1: 5, sphere2: 8 },
+  { id: 42, sphere1: 5, sphere2: 9 },
+  { id: 43, sphere1: 5, sphere2: 10 },
+  { id: 44, sphere1: 5, sphere2: 11 },
+  { id: 45, sphere1: 5, sphere2: 12 },
+  { id: 46, sphere1: 6, sphere2: 7 },
+  { id: 47, sphere1: 6, sphere2: 8 },
+  { id: 48, sphere1: 6, sphere2: 9 },
+  { id: 49, sphere1: 6, sphere2: 10 },
+  { id: 50, sphere1: 6, sphere2: 11 },
+  { id: 51, sphere1: 6, sphere2: 12 },
+  { id: 52, sphere1: 7, sphere2: 8 },
+  { id: 53, sphere1: 7, sphere2: 9 },
+  { id: 54, sphere1: 7, sphere2: 10 },
+  { id: 55, sphere1: 7, sphere2: 11 },
+  { id: 56, sphere1: 7, sphere2: 12 },
+  { id: 57, sphere1: 8, sphere2: 9 },
+  { id: 58, sphere1: 8, sphere2: 10 },
+  { id: 59, sphere1: 8, sphere2: 11 },
+  { id: 60, sphere1: 8, sphere2: 12 },
+  { id: 61, sphere1: 9, sphere2: 10 },
+  { id: 62, sphere1: 9, sphere2: 11 },
+  { id: 63, sphere1: 9, sphere2: 12 },
+  { id: 64, sphere1: 10, sphere2: 11 },
+  { id: 65, sphere1: 10, sphere2: 12 },
+  { id: 66, sphere1: 11, sphere2: 12 }
+];
+
 export default function Index() {
-  const [currentView, setCurrentView] = useState<'start' | 'instructions' | 'ranking' | 'results'>('start');
+  const [currentView, setCurrentView] = useState<'start' | 'instructions' | 'ranking' | 'comparison' | 'results'>('start');
   const [rankingType, setRankingType] = useState<RankingType>('value');
   const [valueRankings, setValueRankings] = useState<Record<number, number>>({});
   const [accessibilityRankings, setAccessibilityRankings] = useState<Record<number, number>>({});
+  const [currentComparisonIndex, setCurrentComparisonIndex] = useState(0);
+  const [comparisonChoices, setComparisonChoices] = useState<Record<number, number>>({});
 
   const currentRankings = rankingType === 'value' ? valueRankings : accessibilityRankings;
   const setCurrentRankings = rankingType === 'value' ? setValueRankings : setAccessibilityRankings;
@@ -57,7 +134,28 @@ export default function Index() {
       setRankingType('accessibility');
       setCurrentView('ranking');
     } else {
+      setCurrentView('comparison');
+      setCurrentComparisonIndex(0);
+    }
+  };
+
+  const handleComparisonChoice = (chosenSphereId: number) => {
+    const currentPair = COMPARISON_PAIRS[currentComparisonIndex];
+    setComparisonChoices({
+      ...comparisonChoices,
+      [currentPair.id]: chosenSphereId
+    });
+
+    if (currentComparisonIndex < COMPARISON_PAIRS.length - 1) {
+      setCurrentComparisonIndex(currentComparisonIndex + 1);
+    } else {
       setCurrentView('results');
+    }
+  };
+
+  const handleComparisonPrevious = () => {
+    if (currentComparisonIndex > 0) {
+      setCurrentComparisonIndex(currentComparisonIndex - 1);
     }
   };
 
@@ -303,6 +401,8 @@ export default function Index() {
             onClick={() => {
               setValueRankings({});
               setAccessibilityRankings({});
+              setComparisonChoices({});
+              setCurrentComparisonIndex(0);
               setCurrentView('start');
             }} 
             className="w-full h-14 text-lg font-semibold bg-gradient-to-r from-primary via-secondary to-accent hover:opacity-90 transition-all hover:scale-105"
@@ -310,6 +410,116 @@ export default function Index() {
             <Icon name="RotateCcw" size={20} className="mr-2" />
             Пройти тест заново
           </Button>
+        </Card>
+      </div>
+    );
+  }
+
+  if (currentView === 'comparison') {
+    const currentPair = COMPARISON_PAIRS[currentComparisonIndex];
+    const sphere1 = LIFE_SPHERES.find(s => s.id === currentPair.sphere1);
+    const sphere2 = LIFE_SPHERES.find(s => s.id === currentPair.sphere2);
+    const progress = ((currentComparisonIndex + 1) / COMPARISON_PAIRS.length) * 100;
+    const currentChoice = comparisonChoices[currentPair.id];
+
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-orange-50 flex items-center justify-center p-4">
+        <Card className="max-w-4xl w-full p-6 md:p-10 animate-fade-in shadow-2xl">
+          <div className="mb-8">
+            <div className="flex items-center justify-between mb-6">
+              <Button
+                onClick={() => setCurrentView('start')}
+                variant="ghost"
+                size="icon"
+                className="hover:scale-110 transition-transform"
+              >
+                <Icon name="Home" size={20} />
+              </Button>
+              <div className="flex-1 text-center">
+                <h2 className="text-xl md:text-2xl font-bold text-accent">
+                  Матрица 2: Сравнительные понятия
+                </h2>
+                <p className="text-sm text-foreground/60 mt-1">
+                  Выберите более важную ценность для вас
+                </p>
+              </div>
+              <div className="w-10" />
+            </div>
+            
+            <Progress value={progress} className="h-2 mb-4" />
+            <p className="text-center text-sm text-foreground/60">
+              Пара {currentComparisonIndex + 1} из {COMPARISON_PAIRS.length}
+            </p>
+          </div>
+
+          <div className="mb-8">
+            <p className="text-center text-lg text-foreground/80 mb-6">
+              Что для вас <span className="font-semibold text-primary">более значимо</span>?
+            </p>
+
+            <div className="grid md:grid-cols-2 gap-6">
+              <div
+                onClick={() => handleComparisonChoice(currentPair.sphere1)}
+                className={`
+                  group cursor-pointer rounded-2xl border-3 p-6 transition-all duration-300
+                  hover:scale-105
+                  ${currentChoice === currentPair.sphere1
+                    ? 'border-primary bg-gradient-to-br from-primary/20 to-secondary/10 shadow-xl' 
+                    : 'border-border bg-white hover:border-primary/50 hover:shadow-lg'
+                  }
+                `}
+              >
+                <div className="flex flex-col gap-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-2xl font-bold text-primary">{currentPair.sphere1}</span>
+                    {currentChoice === currentPair.sphere1 && (
+                      <Icon name="CheckCircle2" size={24} className="text-primary animate-scale-in" />
+                    )}
+                  </div>
+                  <p className="text-foreground font-medium leading-relaxed">
+                    {sphere1?.name}
+                  </p>
+                </div>
+              </div>
+
+              <div
+                onClick={() => handleComparisonChoice(currentPair.sphere2)}
+                className={`
+                  group cursor-pointer rounded-2xl border-3 p-6 transition-all duration-300
+                  hover:scale-105
+                  ${currentChoice === currentPair.sphere2
+                    ? 'border-secondary bg-gradient-to-br from-secondary/20 to-accent/10 shadow-xl' 
+                    : 'border-border bg-white hover:border-secondary/50 hover:shadow-lg'
+                  }
+                `}
+              >
+                <div className="flex flex-col gap-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-2xl font-bold text-secondary">{currentPair.sphere2}</span>
+                    {currentChoice === currentPair.sphere2 && (
+                      <Icon name="CheckCircle2" size={24} className="text-secondary animate-scale-in" />
+                    )}
+                  </div>
+                  <p className="text-foreground font-medium leading-relaxed">
+                    {sphere2?.name}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {currentComparisonIndex > 0 && (
+            <div className="flex justify-center">
+              <Button
+                onClick={handleComparisonPrevious}
+                variant="outline"
+                className="px-8 h-12 font-semibold border-2 hover:scale-105 transition-all"
+              >
+                <Icon name="ChevronLeft" size={20} className="mr-2" />
+                Назад
+              </Button>
+            </div>
+          )}
         </Card>
       </div>
     );
@@ -412,7 +622,7 @@ export default function Index() {
                 : 'opacity-50 cursor-not-allowed'
             }`}
           >
-            {isValuePhase ? 'Перейти к оценке доступности' : 'Показать результаты'}
+            {isValuePhase ? 'Перейти к оценке доступности' : 'Перейти к сравнениям'}
             <Icon name="ArrowRight" size={20} className="ml-2" />
           </Button>
         </div>
