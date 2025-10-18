@@ -104,7 +104,8 @@ const COMPARISON_PAIRS: ComparisonPair[] = [
 ];
 
 export default function Index() {
-  const [currentView, setCurrentView] = useState<'start' | 'instructions' | 'ranking' | 'comparison' | 'results'>('start');
+  const [currentView, setCurrentView] = useState<'start' | 'course' | 'instructions' | 'ranking' | 'comparison' | 'results'>('start');
+  const [courseYear, setCourseYear] = useState<string>('');
   const [rankingType, setRankingType] = useState<RankingType>('value');
   const [valueRankings, setValueRankings] = useState<Record<number, number>>({});
   const [accessibilityRankings, setAccessibilityRankings] = useState<Record<number, number>>({});
@@ -194,7 +195,8 @@ export default function Index() {
           accessibilityRankings,
           comparisonChoices,
           totalDifference,
-          satisfactionIndex
+          satisfactionIndex,
+          courseYear
         })
       });
       
@@ -318,7 +320,7 @@ export default function Index() {
 
           <div className="space-y-4">
             <Button 
-              onClick={() => setCurrentView('instructions')} 
+              onClick={() => setCurrentView('course')} 
               className="w-full h-14 text-lg font-semibold bg-gradient-to-r from-primary via-secondary to-accent hover:opacity-90 transition-all hover:scale-105"
             >
               Начать тест
@@ -342,6 +344,51 @@ export default function Index() {
               </div>
             </div>
           </div>
+        </Card>
+      </div>
+    );
+  }
+
+  if (currentView === 'course') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-orange-50 flex items-center justify-center p-4">
+        <Card className="max-w-2xl w-full p-8 md:p-12 text-center animate-scale-in shadow-2xl">
+          <div className="mb-8">
+            <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-primary to-secondary mb-6">
+              <Icon name="GraduationCap" size={40} className="text-white" />
+            </div>
+            <h1 className="text-3xl md:text-4xl font-bold mb-4 bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
+              На каком вы курсе?
+            </h1>
+            <p className="text-lg text-foreground/70">
+              Укажите ваш текущий курс обучения
+            </p>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4 mb-8">
+            {['1 курс', '2 курс', '3 курс', '4 курс'].map((course) => (
+              <Button
+                key={course}
+                onClick={() => {
+                  setCourseYear(course);
+                  setCurrentView('instructions');
+                }}
+                variant={courseYear === course ? 'default' : 'outline'}
+                className="h-20 text-xl font-semibold hover:scale-105 transition-all"
+              >
+                {course}
+              </Button>
+            ))}
+          </div>
+
+          <Button
+            onClick={() => setCurrentView('start')}
+            variant="ghost"
+            className="gap-2"
+          >
+            <Icon name="ArrowLeft" size={16} />
+            Назад
+          </Button>
         </Card>
       </div>
     );

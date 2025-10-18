@@ -66,10 +66,21 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             id,
             total_difference,
             satisfaction_index,
-            created_at
+            created_at,
+            course_year
         FROM test_results
         ORDER BY created_at DESC
         LIMIT 20
+    """
+    
+    course_distribution_query = """
+        SELECT 
+            course_year,
+            COUNT(*) as count
+        FROM test_results
+        WHERE course_year != ''
+        GROUP BY course_year
+        ORDER BY course_year
     """
     
     cur.execute(stats_query)
@@ -87,6 +98,11 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     for row in cur.fetchall():
         distribution.append({'level': row[0], 'count': row[1]})
     
+    cur.execute(course_distribution_query)
+    course_distribution = []
+    for row in cur.fetchall():
+        course_distribution.append({'course': row[0], 'count': row[1]})
+    
     cur.execute(recent_query)
     recent = []
     for row in cur.fetchall():
@@ -94,7 +110,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             'id': row[0],
             'total_difference': row[1],
             'satisfaction_index': float(row[2]),
-            'created_at': row[3].isoformat() if row[3] else None
+            'created_at': row[3].isoformat() if row[3] else None,
+            'course_year': row[4] if row[4] else ''
         })
     
     cur.close()
@@ -110,6 +127,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         'body': json.dumps({
             'stats': stats,
             'distribution': distribution,
+            'course_distribution': course_distribution,
             'recent': recent
         })
     }

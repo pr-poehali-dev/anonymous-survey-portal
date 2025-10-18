@@ -16,11 +16,16 @@ interface AnalyticsData {
     level: string;
     count: number;
   }>;
+  course_distribution: Array<{
+    course: string;
+    count: number;
+  }>;
   recent: Array<{
     id: number;
     total_difference: number;
     satisfaction_index: number;
     created_at: string;
+    course_year: string;
   }>;
 }
 
@@ -179,6 +184,30 @@ export default function Admin() {
           </div>
         </Card>
 
+        {data.course_distribution && data.course_distribution.length > 0 && (
+          <Card className="p-8 mb-8 animate-fade-in" style={{ animationDelay: '0.35s' }}>
+            <h2 className="text-2xl font-bold mb-6">Распределение по курсам</h2>
+            
+            <div className="space-y-4">
+              {data.course_distribution.map((item, index) => (
+                <div key={item.course} className="animate-fade-in" style={{ animationDelay: `${index * 0.05}s` }}>
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <div className="w-4 h-4 rounded-full bg-primary/70"></div>
+                      <span className="font-semibold">{item.course}</span>
+                    </div>
+                    <span className="text-2xl font-bold text-primary">{item.count}</span>
+                  </div>
+                  <Progress value={(item.count / total) * 100} className="h-3" />
+                  <p className="text-sm text-foreground/60 mt-1">
+                    {((item.count / total) * 100).toFixed(1)}% от всех тестов
+                  </p>
+                </div>
+              ))}
+            </div>
+          </Card>
+        )}
+
         <Card className="p-8 animate-fade-in" style={{ animationDelay: '0.4s' }}>
           <h2 className="text-2xl font-bold mb-6">Последние 20 результатов</h2>
           
@@ -187,6 +216,7 @@ export default function Admin() {
               <thead>
                 <tr className="border-b-2 border-border">
                   <th className="text-left py-3 px-2">ID</th>
+                  <th className="text-center py-3 px-2">Курс</th>
                   <th className="text-center py-3 px-2">Расхождение</th>
                   <th className="text-center py-3 px-2">Индекс</th>
                   <th className="text-center py-3 px-2">Уровень</th>
@@ -206,6 +236,11 @@ export default function Admin() {
                       style={{ animationDelay: `${index * 0.02}s` }}
                     >
                       <td className="py-3 px-2 font-mono text-foreground/60">#{test.id}</td>
+                      <td className="text-center py-3 px-2">
+                        <span className="px-2 py-1 rounded bg-primary/10 text-primary text-xs font-semibold">
+                          {test.course_year || '-'}
+                        </span>
+                      </td>
                       <td className="text-center py-3 px-2 font-semibold">{test.total_difference}</td>
                       <td className="text-center py-3 px-2 font-semibold text-primary">
                         {test.satisfaction_index.toFixed(1)}%

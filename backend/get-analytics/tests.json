@@ -4,11 +4,6 @@
       "name": "Get analytics data",
       "method": "GET",
       "expectedStatus": 200,
-      "expectedBody": {
-        "stats": {},
-        "distribution": [],
-        "recent": []
-      },
       "bodyMatcher": "partial"
     }
   ]

@@ -42,14 +42,15 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     comparison_choices = data.get('comparisonChoices', {})
     total_difference = data.get('totalDifference', 0)
     satisfaction_index = data.get('satisfactionIndex', 0.0)
+    course_year = data.get('courseYear', '')
     
     conn = psycopg2.connect(os.environ['DATABASE_URL'])
     cur = conn.cursor()
     
     query = """
         INSERT INTO test_results 
-        (value_rankings, accessibility_rankings, comparison_choices, total_difference, satisfaction_index)
-        VALUES (%s, %s, %s, %s, %s)
+        (value_rankings, accessibility_rankings, comparison_choices, total_difference, satisfaction_index, course_year)
+        VALUES (%s, %s, %s, %s, %s, %s)
         RETURNING id, session_id
     """
     
@@ -58,7 +59,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         json.dumps(accessibility_rankings),
         json.dumps(comparison_choices),
         total_difference,
-        satisfaction_index
+        satisfaction_index,
+        course_year
     ))
     
     result = cur.fetchone()
