@@ -366,7 +366,7 @@ export default function Index() {
           </div>
 
           <div className="grid grid-cols-2 gap-4 mb-8">
-            {['1 курс', '2 курс', '3 курс', '4 курс'].map((course) => (
+            {['1 курс', '2 курс', '3 курс', '4 курс', '5 курс'].map((course) => (
               <Button
                 key={course}
                 onClick={() => {
